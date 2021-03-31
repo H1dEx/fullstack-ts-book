@@ -3,6 +3,8 @@ import { v4 } from 'uuid';
 import { todos } from './db';
 import { GqlContext } from "./GqlContext";
 
+const NEW_TODO = "NEW TODO"
+
 interface User {
     id: string;
     username: string;
@@ -18,7 +20,7 @@ interface Todo {
 const resolvers: IResolvers = {
     Query: {
         getUser: async (
-            obj: any,
+            parent: any,
             args: {
                 id: string
             },
@@ -48,11 +50,18 @@ const resolvers: IResolvers = {
                 title: string;
                 description: string;
             },
-            ctx: GqlContext,
+            { pubsub }: GqlContext,
             info: any
         ): Promise<Todo> => {
-            todos.push({ id: v4(), title: args.title, description: args.description })
+            const newTodo = { id: v4(), title: args.title, description: args.description };
+            todos.push(newTodo);
+            pubsub.publish(NEW_TODO, {newTodo})
             return todos[todos.length - 1]
+        }
+    },
+    Subscription: {
+        newTodo: {
+            subscribe: (parent, args: null, {pubsub}: GqlContext) => pubsub.asyncIterator(NEW_TODO)
         }
     }
 }

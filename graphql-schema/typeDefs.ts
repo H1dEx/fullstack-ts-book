@@ -19,7 +19,11 @@ const typeDefs = gql`
     }
 
     type Mutation {
-        addTodo(title: String!, description: String): Todo
+        addTodo(title: String!, description: String): Todo   
+    }
+
+    type Subscription {
+        newTodo: Todo!
     }
 `
 
